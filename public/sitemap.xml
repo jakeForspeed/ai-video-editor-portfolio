@@ -5,19 +5,23 @@
 >
 
   <url>
-    <loc>https://your-domain.com/</loc>
+    <loc>https://robertjakematao-ai-video-portfolio.netlify.app/</loc>
   </url>
 
   <url>
-    <loc>https://your-domain.com/portfolio</loc>
+    <loc>https://robertjakematao-ai-video-portfolio.netlify.app/portfolio</loc>
   </url>
 
   <url>
-    <loc>https://your-domain.com/about</loc>
+    <loc>https://robertjakematao-ai-video-portfolio.netlify.app/services</loc>
   </url>
 
   <url>
-    <loc>https://your-domain.com/contact</loc>
+    <loc>https://robertjakematao-ai-video-portfolio.netlify.app/about</loc>
+  </url>
+
+  <url>
+    <loc>https://robertjakematao-ai-video-portfolio.netlify.app/contact</loc>
   </url>
 
 </urlset>
