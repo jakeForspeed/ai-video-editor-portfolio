@@ -2,6 +2,7 @@ import { useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 
 import ScrollReveal from "../components/ScrollReveal"
+import { createContactMessage } from "../services/contactService"
 
 
 function Contact() {
@@ -9,13 +10,68 @@ function Contact() {
   const [submitted, setSubmitted] =
     useState(false)
 
+  const [sending, setSending] =
+    useState(false)
 
-  function handleSubmit(event) {
+  const [error, setError] =
+    useState("")
+
+
+  async function handleSubmit(event) {
 
     event.preventDefault()
 
-    setSubmitted(true)
+    const form =
+      event.currentTarget
 
+    setError("")
+    setSending(true)
+
+    const formData =
+      new FormData(form)
+
+    const name =
+      formData.get("name")
+
+    const email =
+      formData.get("email")
+
+    const projectType =
+      formData.get("project")
+
+    const message =
+      formData.get("message")
+
+
+    try {
+
+      await createContactMessage({
+        name,
+        email,
+        projectType,
+        message,
+      })
+
+      form.reset()
+
+      setSubmitted(true)
+
+    } catch (error) {
+
+      console.error(
+        "Contact form submission failed:",
+        error
+      )
+
+      setError(
+        "Something went wrong while sending your message. Please try again."
+      )
+
+    } finally {
+
+      setSending(false)
+
+    }
   }
 
 
@@ -81,7 +137,7 @@ function Contact() {
 
 
       {/* ========================================
-          CONTACT
+          CONTACT SECTION
       ======================================== */}
 
       <section className="py-20">
@@ -105,9 +161,7 @@ function Contact() {
 
 
                 <h2 className="mt-5 text-3xl font-bold">
-
                   Have a project?
-
                 </h2>
 
 
@@ -115,8 +169,8 @@ function Contact() {
 
                   Whether you need an AI product
                   advertisement, social media video,
-                  or creative concept, I'd love to
-                  hear about it.
+                  or creative concept, I'd love
+                  to hear about it.
 
                 </p>
 
@@ -127,6 +181,7 @@ function Contact() {
                   {/* Email */}
 
                   <motion.div
+
                     whileHover={{
                       x: 4,
                     }}
@@ -151,6 +206,7 @@ function Contact() {
                   {/* Availability */}
 
                   <motion.div
+
                     whileHover={{
                       x: 4,
                     }}
@@ -210,6 +266,7 @@ function Contact() {
 
                 <AnimatePresence mode="wait">
 
+
                   {submitted ? (
 
                     /* =================================
@@ -248,7 +305,6 @@ function Contact() {
                         text-center
                       "
                     >
-
 
                       {/* Success icon */}
 
@@ -352,8 +408,8 @@ function Contact() {
                       >
 
                         Thanks for reaching out.
-                        This form will be connected
-                        to a real contact system later.
+                        I'll get back to you as soon
+                        as possible.
 
                       </motion.p>
 
@@ -383,9 +439,10 @@ function Contact() {
                           scale: 0.97,
                         }}
 
-                        onClick={() =>
+                        onClick={() => {
                           setSubmitted(false)
-                        }
+                          setError("")
+                        }}
 
                         className="
                           mt-6
@@ -436,6 +493,53 @@ function Contact() {
 
 
                       {/* =================================
+                          ERROR MESSAGE
+                      ================================= */}
+
+                      <AnimatePresence>
+
+                        {error && (
+
+                          <motion.div
+
+                            initial={{
+                              opacity: 0,
+                              y: -8,
+                            }}
+
+                            animate={{
+                              opacity: 1,
+                              y: 0,
+                            }}
+
+                            exit={{
+                              opacity: 0,
+                              y: -8,
+                            }}
+
+                            className="
+                              rounded-xl
+                              border
+                              border-red-400/20
+                              bg-red-400/5
+                              px-4
+                              py-3
+                              text-sm
+                              text-red-300
+                            "
+                          >
+
+                            {error}
+
+                          </motion.div>
+
+                        )}
+
+                      </AnimatePresence>
+
+
+
+                      {/* =================================
                           NAME
                       ================================= */}
 
@@ -449,6 +553,7 @@ function Contact() {
                           name="name"
                           type="text"
                           required
+                          disabled={sending}
                           placeholder="Your name"
                           className="
                             mt-2
@@ -468,6 +573,8 @@ function Contact() {
                             focus:bg-white/[0.07]
                             focus:ring-2
                             focus:ring-cyan-400/10
+                            disabled:cursor-not-allowed
+                            disabled:opacity-50
                           "
                         />
 
@@ -489,6 +596,7 @@ function Contact() {
                           name="email"
                           type="email"
                           required
+                          disabled={sending}
                           placeholder="you@example.com"
                           className="
                             mt-2
@@ -508,6 +616,8 @@ function Contact() {
                             focus:bg-white/[0.07]
                             focus:ring-2
                             focus:ring-cyan-400/10
+                            disabled:cursor-not-allowed
+                            disabled:opacity-50
                           "
                         />
 
@@ -527,6 +637,7 @@ function Contact() {
                         <select
                           id="project"
                           name="project"
+                          disabled={sending}
                           className="
                             mt-2
                             w-full
@@ -543,6 +654,8 @@ function Contact() {
                             focus:border-cyan-400/50
                             focus:ring-2
                             focus:ring-cyan-400/10
+                            disabled:cursor-not-allowed
+                            disabled:opacity-50
                           "
                         >
 
@@ -586,6 +699,7 @@ function Contact() {
                           name="message"
                           required
                           rows="6"
+                          disabled={sending}
                           placeholder="Tell me about your project..."
                           className="
                             mt-2
@@ -606,6 +720,8 @@ function Contact() {
                             focus:bg-white/[0.07]
                             focus:ring-2
                             focus:ring-cyan-400/10
+                            disabled:cursor-not-allowed
+                            disabled:opacity-50
                           "
                         />
 
@@ -621,20 +737,30 @@ function Contact() {
 
                         type="submit"
 
-                        whileHover={{
-                          y: -2,
-                        }}
+                        disabled={sending}
 
-                        whileTap={{
-                          scale: 0.98,
-                        }}
+                        whileHover={
+                          !sending
+                            ? {
+                                y: -2,
+                              }
+                            : {}
+                        }
 
-                        transition={{
-                          duration: 0.2,
-                        }}
+                        whileTap={
+                          !sending
+                            ? {
+                                scale: 0.98,
+                              }
+                            : {}
+                        }
 
                         className="
+                          flex
                           w-full
+                          items-center
+                          justify-center
+                          gap-2
                           rounded-xl
                           bg-white
                           px-6
@@ -644,10 +770,36 @@ function Contact() {
                           transition-colors
                           duration-300
                           hover:bg-cyan-400
+                          disabled:cursor-not-allowed
+                          disabled:opacity-60
+                          disabled:hover:bg-white
                         "
                       >
 
-                        Send Message
+                        {sending ? (
+
+                          <>
+                            <span
+                              className="
+                                h-4
+                                w-4
+                                animate-spin
+                                rounded-full
+                                border-2
+                                border-slate-950/30
+                                border-t-slate-950
+                              "
+                            />
+
+                            Sending...
+
+                          </>
+
+                        ) : (
+
+                          "Send Message"
+
+                        )}
 
                       </motion.button>
 
@@ -703,7 +855,6 @@ function FormField({
       {children}
 
     </div>
-
   )
 }
 

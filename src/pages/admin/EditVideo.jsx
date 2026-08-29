@@ -68,21 +68,19 @@ function EditVideo() {
   const [existingVideo, setExistingVideo] =
     useState(null)
 
-  const [existingThumbnail, setExistingThumbnail] =
-    useState(null)
-
-
   const [newVideo, setNewVideo] =
     useState(null)
 
   const [newThumbnail, setNewThumbnail] =
     useState(null)
 
-
   const [thumbnailPreview, setThumbnailPreview] =
     useState("")
 
 
+  /*
+   * Load video
+   */
   useEffect(() => {
 
     async function loadVideo() {
@@ -92,11 +90,13 @@ function EditVideo() {
         const videos =
           await getAllVideos()
 
+
         const video =
           videos.find(
             (item) =>
               String(item.id) === String(id)
           )
+
 
         if (!video) {
 
@@ -110,23 +110,27 @@ function EditVideo() {
 
         setExistingVideo(video)
 
-        setExistingThumbnail(video)
 
+        setTitle(
+          video.title || ""
+        )
 
-        setTitle(video.title || "")
 
         setCategory(
           video.category ||
           "Product Ads"
         )
 
+
         setDescription(
           video.description || ""
         )
 
+
         setDuration(
           video.duration || ""
         )
+
 
         setTools(
           Array.isArray(video.tools)
@@ -134,13 +138,16 @@ function EditVideo() {
             : ""
         )
 
+
         setFeatured(
           Boolean(video.featured)
         )
 
+
         setPublished(
           Boolean(video.published)
         )
+
 
         setThumbnailPreview(
           video.thumbnail_url || ""
@@ -148,7 +155,11 @@ function EditVideo() {
 
       } catch (error) {
 
-        console.error(error)
+        console.error(
+          "Failed to load video:",
+          error
+        )
+
 
         setError(
           error.message ||
@@ -163,15 +174,20 @@ function EditVideo() {
 
     }
 
+
     loadVideo()
 
   }, [id])
 
 
+  /*
+   * Thumbnail change
+   */
   function handleThumbnailChange(event) {
 
     const file =
       event.target.files?.[0]
+
 
     if (!file) {
       return
@@ -190,18 +206,25 @@ function EditVideo() {
 
     setNewThumbnail(file)
 
+
     setThumbnailPreview(
       URL.createObjectURL(file)
     )
 
+
     setError("")
+
   }
 
 
+  /*
+   * Video change
+   */
   function handleVideoChange(event) {
 
     const file =
       event.target.files?.[0]
+
 
     if (!file) {
       return
@@ -220,13 +243,19 @@ function EditVideo() {
 
     setNewVideo(file)
 
+
     setError("")
+
   }
 
 
+  /*
+   * Submit
+   */
   async function handleSubmit(event) {
 
     event.preventDefault()
+
 
     setError("")
     setSaving(true)
@@ -247,6 +276,7 @@ function EditVideo() {
       const trimmedTitle =
         title.trim()
 
+
       if (!trimmedTitle) {
 
         throw new Error(
@@ -261,7 +291,7 @@ function EditVideo() {
 
 
       /*
-       * Update slug
+       * Slug
        */
       updates.slug =
         createSlug(trimmedTitle)
@@ -273,22 +303,28 @@ function EditVideo() {
       updates.category =
         category
 
+
       updates.description =
         description.trim()
 
+
       updates.duration =
         duration.trim()
+
 
       updates.tools =
         tools
           .split(",")
           .map(
-            (tool) => tool.trim()
+            (tool) =>
+              tool.trim()
           )
           .filter(Boolean)
 
+
       updates.featured =
         featured
+
 
       updates.published =
         published
@@ -308,6 +344,7 @@ function EditVideo() {
 
         updates.video_url =
           uploadedVideo.url
+
 
         updates.video_path =
           uploadedVideo.path
@@ -330,6 +367,7 @@ function EditVideo() {
         updates.thumbnail_url =
           uploadedThumbnail.url
 
+
         updates.thumbnail_path =
           uploadedThumbnail.path
 
@@ -348,7 +386,7 @@ function EditVideo() {
 
       /*
        * Delete old video
-       * only after successful database update.
+       * only after database update succeeds.
        */
       if (
         newVideo &&
@@ -408,7 +446,7 @@ function EditVideo() {
 
 
       navigate(
-        "/admin/dashboard",
+        "/admin/portfolio",
         {
           replace: true,
         }
@@ -423,8 +461,8 @@ function EditVideo() {
 
 
       /*
-       * If new files were uploaded but
-       * database update failed, clean them.
+       * Remove newly uploaded files
+       * if database update failed.
        */
       try {
 
@@ -467,17 +505,23 @@ function EditVideo() {
       setSaving(false)
 
     }
+
   }
 
 
+  /*
+   * Loading state
+   */
   if (loading) {
 
     return (
-      <div className="min-h-screen px-6 py-20">
+      <div className="flex min-h-[60vh] items-center justify-center">
 
-        <div className="mx-auto max-w-5xl">
+        <div className="text-center">
 
-          <p className="text-slate-500">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-cyan-400" />
+
+          <p className="mt-5 text-sm text-slate-500">
             Loading video...
           </p>
 
@@ -489,30 +533,29 @@ function EditVideo() {
   }
 
 
+  /*
+   * Video not found
+   */
   if (error && !existingVideo) {
 
     return (
-      <div className="min-h-screen px-6 py-20">
+      <div className="py-10">
 
-        <div className="mx-auto max-w-5xl">
+        <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-6">
 
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-6">
-
-            <p className="text-red-300">
-              {error}
-            </p>
-
-          </div>
-
-
-          <Link
-            to="/admin/dashboard"
-            className="mt-6 inline-block text-sm text-cyan-400"
-          >
-            ← Back to Dashboard
-          </Link>
+          <p className="text-red-300">
+            {error}
+          </p>
 
         </div>
+
+
+        <Link
+          to="/admin/portfolio"
+          className="mt-6 inline-block text-sm text-cyan-400 transition hover:text-cyan-300"
+        >
+          ← Back to Portfolio
+        </Link>
 
       </div>
     )
@@ -521,21 +564,20 @@ function EditVideo() {
 
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="py-2">
 
-      <header className="border-b border-white/10">
-
-        <div className="mx-auto max-w-5xl px-6 py-8 lg:px-8">
-
-          <Link
-            to="/admin/dashboard"
-            className="text-sm text-slate-400 hover:text-white"
-          >
-            ← Back to Dashboard
-          </Link>
+      {/* Header */}
+      <header className="border-b border-white/10 pb-8">
 
 
-          <h1 className="mt-5 text-3xl font-bold">
+        <div className="mt-5">
+
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-cyan-400">
+            Portfolio
+          </p>
+
+
+          <h1 className="mt-2 text-3xl font-bold">
             Edit Video
           </h1>
 
@@ -549,13 +591,15 @@ function EditVideo() {
       </header>
 
 
-      <main className="mx-auto max-w-5xl px-6 py-12 lg:px-8">
+      {/* Form */}
+      <main className="py-10">
 
         <form
           onSubmit={handleSubmit}
           className="space-y-8"
         >
 
+          {/* Error */}
           {error && (
             <div className="rounded-xl border border-red-400/20 bg-red-400/5 px-5 py-4 text-sm text-red-300">
               {error}
@@ -563,55 +607,83 @@ function EditVideo() {
           )}
 
 
-          {/* Information */}
+          {/* Project Information */}
           <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 sm:p-8">
 
-            <h2 className="text-xl font-semibold">
-              Project Information
-            </h2>
+            <div>
+
+              <h2 className="text-xl font-semibold">
+                Project Information
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Update the basic information about this video.
+              </p>
+
+            </div>
 
 
             <div className="mt-8 space-y-6">
 
+              {/* Title */}
               <div>
 
-                <label className="text-sm font-medium text-slate-300">
+                <label
+                  htmlFor="title"
+                  className="text-sm font-medium text-slate-300"
+                >
                   Title
                 </label>
 
+
                 <input
+                  id="title"
+                  type="text"
                   value={title}
                   onChange={(event) =>
-                    setTitle(event.target.value)
+                    setTitle(
+                      event.target.value
+                    )
                   }
-                  className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400/50"
+                  required
+                  className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-600 transition focus:border-cyan-400/50"
                 />
 
               </div>
 
 
+              {/* Category */}
               <div>
 
-                <label className="text-sm font-medium text-slate-300">
+                <label
+                  htmlFor="category"
+                  className="text-sm font-medium text-slate-300"
+                >
                   Category
                 </label>
 
+
                 <select
+                  id="category"
                   value={category}
                   onChange={(event) =>
-                    setCategory(event.target.value)
+                    setCategory(
+                      event.target.value
+                    )
                   }
-                  className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none"
+                  className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-cyan-400/50"
                 >
 
                   {categories.map(
                     (item) => (
+
                       <option
                         key={item}
                         value={item}
                       >
                         {item}
                       </option>
+
                     )
                   )}
 
@@ -620,58 +692,90 @@ function EditVideo() {
               </div>
 
 
+              {/* Description */}
               <div>
 
-                <label className="text-sm font-medium text-slate-300">
+                <label
+                  htmlFor="description"
+                  className="text-sm font-medium text-slate-300"
+                >
                   Description
                 </label>
 
+
                 <textarea
+                  id="description"
                   rows="5"
                   value={description}
                   onChange={(event) =>
-                    setDescription(event.target.value)
+                    setDescription(
+                      event.target.value
+                    )
                   }
-                  className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400/50"
+                  className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-cyan-400/50"
                 />
 
               </div>
 
 
+              {/* Duration + Tools */}
               <div className="grid gap-6 sm:grid-cols-2">
 
+                {/* Duration */}
                 <div>
 
-                  <label className="text-sm font-medium text-slate-300">
+                  <label
+                    htmlFor="duration"
+                    className="text-sm font-medium text-slate-300"
+                  >
                     Duration
                   </label>
 
+
                   <input
+                    id="duration"
+                    type="text"
                     value={duration}
                     onChange={(event) =>
-                      setDuration(event.target.value)
+                      setDuration(
+                        event.target.value
+                      )
                     }
                     placeholder="00:30"
-                    className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
+                    className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-cyan-400/50"
                   />
 
                 </div>
 
 
+                {/* Tools */}
                 <div>
 
-                  <label className="text-sm font-medium text-slate-300">
+                  <label
+                    htmlFor="tools"
+                    className="text-sm font-medium text-slate-300"
+                  >
                     Tools
                   </label>
 
+
                   <input
+                    id="tools"
+                    type="text"
                     value={tools}
                     onChange={(event) =>
-                      setTools(event.target.value)
+                      setTools(
+                        event.target.value
+                      )
                     }
                     placeholder="AI Generation, CapCut"
-                    className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none"
+                    className="mt-2 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-cyan-400/50"
                   />
+
+
+                  <p className="mt-2 text-xs text-slate-600">
+                    Separate tools with commas.
+                  </p>
 
                 </div>
 
@@ -690,22 +794,29 @@ function EditVideo() {
             </h2>
 
 
-            <div className="mt-6 overflow-hidden rounded-2xl">
+            <p className="mt-1 text-sm text-slate-500">
+              Replace the current project thumbnail.
+            </p>
 
-              {thumbnailPreview && (
+
+            {thumbnailPreview && (
+
+              <div className="mt-6 overflow-hidden rounded-2xl border border-white/10">
+
                 <img
                   src={thumbnailPreview}
                   alt={title}
                   className="aspect-video w-full object-cover"
                 />
-              )}
 
-            </div>
+              </div>
+
+            )}
 
 
             <label
               htmlFor="thumbnail"
-              className="mt-5 inline-block cursor-pointer rounded-xl border border-white/10 px-5 py-3 text-sm text-slate-300 hover:border-cyan-400/40 hover:text-white"
+              className="mt-5 inline-block cursor-pointer rounded-xl border border-white/10 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-cyan-400/40 hover:text-white"
             >
               Replace Thumbnail
             </label>
@@ -719,6 +830,16 @@ function EditVideo() {
               className="hidden"
             />
 
+
+            {newThumbnail && (
+
+              <p className="mt-3 text-sm text-cyan-400">
+                New thumbnail selected:{" "}
+                {newThumbnail.name}
+              </p>
+
+            )}
+
           </section>
 
 
@@ -731,19 +852,28 @@ function EditVideo() {
 
 
             <p className="mt-1 text-sm text-slate-500">
-              Current video:
+              Replace the current video file.
             </p>
 
 
-            <p className="mt-2 truncate text-sm text-slate-400">
-              {existingVideo?.video_path ||
-                existingVideo?.video_url}
-            </p>
+            <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+
+              <p className="text-xs uppercase tracking-wider text-slate-600">
+                Current Video
+              </p>
+
+
+              <p className="mt-2 truncate text-sm text-slate-400">
+                {existingVideo?.video_path ||
+                  existingVideo?.video_url}
+              </p>
+
+            </div>
 
 
             <label
               htmlFor="video"
-              className="mt-5 inline-block cursor-pointer rounded-xl border border-white/10 px-5 py-3 text-sm text-slate-300 hover:border-cyan-400/40 hover:text-white"
+              className="mt-5 inline-block cursor-pointer rounded-xl border border-white/10 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-cyan-400/40 hover:text-white"
             >
               Replace Video
             </label>
@@ -759,9 +889,19 @@ function EditVideo() {
 
 
             {newVideo && (
-              <p className="mt-3 text-sm text-cyan-400">
-                New video: {newVideo.name}
-              </p>
+
+              <div className="mt-4 rounded-xl border border-cyan-400/10 bg-cyan-400/5 px-4 py-3">
+
+                <p className="text-sm text-cyan-400">
+                  New video selected
+                </p>
+
+                <p className="mt-1 truncate text-sm text-slate-400">
+                  {newVideo.name}
+                </p>
+
+              </div>
+
             )}
 
           </section>
@@ -775,27 +915,36 @@ function EditVideo() {
             </h2>
 
 
+            <p className="mt-1 text-sm text-slate-500">
+              Control how this project appears on your website.
+            </p>
+
+
             <div className="mt-6 space-y-5">
 
-              <label className="flex cursor-pointer gap-4">
+              {/* Featured */}
+              <label className="flex cursor-pointer items-start gap-4">
 
                 <input
                   type="checkbox"
                   checked={featured}
                   onChange={(event) =>
-                    setFeatured(event.target.checked)
+                    setFeatured(
+                      event.target.checked
+                    )
                   }
                   className="mt-1 h-4 w-4 accent-cyan-400"
                 />
 
+
                 <div>
 
-                  <p className="text-sm font-medium">
+                  <p className="text-sm font-medium text-white">
                     Featured project
                   </p>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    Highlight this project.
+                    Highlight this project on your website.
                   </p>
 
                 </div>
@@ -803,20 +952,24 @@ function EditVideo() {
               </label>
 
 
-              <label className="flex cursor-pointer gap-4">
+              {/* Published */}
+              <label className="flex cursor-pointer items-start gap-4">
 
                 <input
                   type="checkbox"
                   checked={published}
                   onChange={(event) =>
-                    setPublished(event.target.checked)
+                    setPublished(
+                      event.target.checked
+                    )
                   }
                   className="mt-1 h-4 w-4 accent-cyan-400"
                 />
 
+
                 <div>
 
-                  <p className="text-sm font-medium">
+                  <p className="text-sm font-medium text-white">
                     Published
                   </p>
 
@@ -834,11 +987,11 @@ function EditVideo() {
 
 
           {/* Actions */}
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-white/10 pt-8 sm:flex-row sm:justify-end">
 
             <Link
-              to="/admin/dashboard"
-              className="rounded-xl border border-white/10 px-6 py-3 text-center text-sm text-slate-300 hover:text-white"
+              to="/admin/portfolio"
+              className="rounded-xl border border-white/10 px-6 py-3 text-center text-sm font-medium text-slate-300 transition hover:border-white/20 hover:text-white"
             >
               Cancel
             </Link>
@@ -847,7 +1000,7 @@ function EditVideo() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-slate-950 hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving
                 ? "Saving..."

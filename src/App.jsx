@@ -1,12 +1,17 @@
 import { Routes, Route } from "react-router-dom"
 
 import MainLayout from "./layouts/MainLayout"
-import PublicLayout from "./layouts/PublicLayout"
+import AdminLayout from "./layouts/AdminLayout"
+import AuthLayout from "./layouts/AuthLayout"
+
+import ProtectedRoute from "./components/admin/ProtectedRoute"
 
 import AdminLogin from "./pages/admin/AdminLogin"
 import AdminDashboard from "./pages/admin/AdminDashboard"
 import AddVideo from "./pages/admin/AddVideo"
 import EditVideo from "./pages/admin/EditVideo"
+import AdminMessages from "./pages/admin/AdminMessages"
+import AdminPortfolio from "./pages/admin/AdminPortfolio"
 
 import Home from "./pages/Home"
 import Portfolio from "./pages/Portfolio"
@@ -15,9 +20,17 @@ import Services from "./pages/Services"
 import About from "./pages/About"
 import Contact from "./pages/Contact"
 
+
 function App() {
+
   return (
+
     <Routes>
+
+
+      {/* ========================================
+          PUBLIC WEBSITE
+      ======================================== */}
 
       <Route element={<MainLayout />}>
 
@@ -51,30 +64,85 @@ function App() {
           element={<Contact />}
         />
 
+      </Route>
+
+
+
+      {/* ========================================
+          AUTHENTICATION
+      ======================================== */}
+
+      <Route element={<AuthLayout />}>
+
         <Route
           path="/admin/login"
           element={<AdminLogin />}
         />
 
-        <Route
-          path="/admin/dashboard"
-          element={<AdminDashboard />}
-        />
+      </Route>
+
+
+
+      {/* ========================================
+          PROTECTED ADMIN
+      ======================================== */}
+
+      <Route element={<ProtectedRoute />}>
 
         <Route
-          path="/admin/videos/new"
-          element={<AddVideo />}
-        />
+          path="/admin"
+          element={<AdminLayout />}
+        >
 
-        <Route
-          path="/admin/videos/:id/edit"
-          element={<EditVideo />}
-        />
+          {/* Dashboard */}
+
+          <Route
+            index
+            element={<AdminDashboard />}
+          />
+
+
+          {/* Portfolio */}
+
+          <Route
+            path="portfolio"
+            element={<AdminPortfolio />}
+          />
+
+
+          {/* Add Video */}
+
+          <Route
+            path="portfolio/new"
+            element={<AddVideo />}
+          />
+
+
+          {/* Edit Video */}
+
+          <Route
+            path="portfolio/:id/edit"
+            element={<EditVideo />}
+          />
+
+
+          {/* Messages */}
+
+          <Route
+            path="messages"
+            element={<AdminMessages />}
+          />
+
+        </Route>
 
       </Route>
 
+
     </Routes>
+
   )
+
 }
+
 
 export default App
