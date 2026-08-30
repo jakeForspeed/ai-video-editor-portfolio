@@ -71,3 +71,33 @@ export async function getContactMessages() {
 
   return data
 }
+
+
+/**
+ * Delete a contact message
+ *
+ * Admin only.
+ * Supabase RLS controls access.
+ */
+export async function deleteContactMessage(id) {
+
+  const { error } =
+    await supabase
+      .from("contact_messages")
+      .delete()
+      .eq("id", id)
+
+
+  if (error) {
+
+    console.error(
+      "Failed to delete contact message:",
+      error
+    )
+
+    throw error
+  }
+
+
+  return true
+}

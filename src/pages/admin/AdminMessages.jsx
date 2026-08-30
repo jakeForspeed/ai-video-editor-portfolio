@@ -2,7 +2,11 @@ import { useEffect, useState } from "react"
 import { motion } from "motion/react"
 
 import ScrollReveal from "../../components/ScrollReveal"
-import { getContactMessages } from "../../services/contactService"
+
+import {
+  getContactMessages,
+  deleteContactMessage,
+} from "../../services/contactService"
 
 
 function AdminMessages() {
@@ -15,6 +19,9 @@ function AdminMessages() {
 
   const [error, setError] =
     useState("")
+
+  const [deletingId, setDeletingId] =
+    useState(null)
 
 
   useEffect(() => {
@@ -53,6 +60,65 @@ function AdminMessages() {
     loadMessages()
 
   }, [])
+
+
+
+
+
+  async function handleDelete(message) {
+
+    const confirmed =
+      window.confirm(
+        `Are you sure you want to delete the message from ${message.name}?`
+      )
+
+
+    if (!confirmed) {
+      return
+    }
+
+
+    try {
+
+      setError("")
+      setDeletingId(message.id)
+
+
+      await deleteContactMessage(
+        message.id
+      )
+
+
+      /*
+       * Remove the deleted message
+       * from the local state immediately.
+       */
+      setMessages((currentMessages) =>
+        currentMessages.filter(
+          (item) => item.id !== message.id
+        )
+      )
+
+    } catch (error) {
+
+      console.error(
+        "Failed to delete message:",
+        error
+      )
+
+      setError(
+        "Unable to delete this message. Please try again."
+      )
+
+    } finally {
+
+      setDeletingId(null)
+
+    }
+  }
+
+
+
 
 
   return (
@@ -292,15 +358,150 @@ function AdminMessages() {
 
 
 
-                {/* Date */}
+                {/* Bottom */}
 
-                <p className="mt-5 text-xs text-slate-600">
+                <div className="
+                  mt-5
+                  flex
+                  flex-col
+                  gap-4
+                  sm:flex-row
+                  sm:items-center
+                  sm:justify-between
+                ">
 
-                  {new Date(
-                    message.created_at
-                  ).toLocaleString()}
+                  {/* Date */}
 
-                </p>
+                  <p className="text-xs text-slate-600">
+
+                    {new Date(
+                      message.created_at
+                    ).toLocaleString()}
+
+                  </p>
+
+
+                  {/* Delete */}
+
+                  <motion.button
+
+                    type="button"
+
+                    onClick={() =>
+                      handleDelete(message)
+                    }
+
+                    disabled={
+                      deletingId === message.id
+                    }
+
+                    whileHover={
+                      deletingId !== message.id
+                        ? { y: -1 }
+                        : {}
+                    }
+
+                    whileTap={
+                      deletingId !== message.id
+                        ? { scale: 0.97 }
+                        : {}
+                    }
+
+                    className="
+                      inline-flex
+                      w-fit
+                      items-center
+                      gap-2
+                      rounded-lg
+                      border
+                      border-red-400/20
+                      bg-red-400/5
+                      px-3
+                      py-2
+                      text-xs
+                      font-medium
+                      text-red-400
+                      transition
+                      hover:border-red-400/40
+                      hover:bg-red-400/10
+                      hover:text-red-300
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
+                    "
+                  >
+
+                    {deletingId === message.id ? (
+
+                      <>
+                        <span
+                          className="
+                            h-3
+                            w-3
+                            animate-spin
+                            rounded-full
+                            border-2
+                            border-red-400/30
+                            border-t-red-400
+                          "
+                        />
+
+                        Deleting...
+
+                      </>
+
+                    ) : (
+
+                      <>
+
+                        <svg
+                          className="h-4 w-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                        >
+
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M3 6h18"
+                          />
+
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M8 6V4h8v2"
+                          />
+
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19 6l-1 14H6L5 6"
+                          />
+
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M10 11v5"
+                          />
+
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M14 11v5"
+                          />
+
+                        </svg>
+
+                        Delete
+
+                      </>
+
+                    )}
+
+                  </motion.button>
+
+                </div>
 
               </motion.article>
 

@@ -11,7 +11,7 @@ function AdminLogin() {
 
 
   const [email, setEmail] = useState(
-    "robertjakematao@gmail.com"
+    ""
   )
 
   const [password, setPassword] =

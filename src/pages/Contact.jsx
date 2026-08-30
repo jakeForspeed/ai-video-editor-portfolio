@@ -1,60 +1,128 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 
 import ScrollReveal from "../components/ScrollReveal"
 import { createContactMessage } from "../services/contactService"
+import { sendContactEmail } from "../services/emailService"
 
 
 function Contact() {
 
-  const [submitted, setSubmitted] =
-    useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState("")
 
-  const [sending, setSending] =
-    useState(false)
+  const formRef = useRef(null)
 
-  const [error, setError] =
-    useState("")
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [projectType, setProjectType] = useState(
+    "AI Video Advertisement"
+  )
+  const [message, setMessage] = useState("")
 
 
   async function handleSubmit(event) {
 
     event.preventDefault()
 
-    const form =
-      event.currentTarget
+    if (sending) return
 
     setError("")
     setSending(true)
 
-    const formData =
-      new FormData(form)
 
-    const name =
-      formData.get("name")
-
-    const email =
-      formData.get("email")
-
-    const projectType =
-      formData.get("project")
-
-    const message =
-      formData.get("message")
+    const trimmedName = name.trim()
+    const trimmedEmail = email.trim()
+    const trimmedMessage = message.trim()
 
 
     try {
 
+      /*
+       * 1. Save message to Supabase
+       *
+       * contactService.js expects:
+       * name
+       * email
+       * projectType
+       * message
+       */
+
       await createContactMessage({
-        name,
-        email,
+
+        name: trimmedName,
+
+        email: trimmedEmail,
+
         projectType,
-        message,
+
+        message: trimmedMessage,
+
       })
 
-      form.reset()
+
+      /*
+       * 2. Send email notification through EmailJS
+       *
+       * emailService.js expects:
+       * name
+       * email
+       * project_type
+       * message
+       */
+
+      try {
+
+        await sendContactEmail({
+
+          name: trimmedName,
+
+          email: trimmedEmail,
+
+          project_type: projectType,
+
+          message: trimmedMessage,
+
+        })
+
+      } catch (emailError) {
+
+        /*
+         * EmailJS failed, but the contact message
+         * was already successfully saved to Supabase.
+         */
+
+        console.error(
+          "Email notification failed:",
+          emailError
+        )
+
+      }
+
+
+      /*
+       * 3. Show success state
+       */
 
       setSubmitted(true)
+
+
+      /*
+       * 4. Reset React form state
+       */
+
+      setName("")
+      setEmail("")
+      setProjectType("AI Video Advertisement")
+      setMessage("")
+
+
+      /*
+       * 5. Reset native form values as well
+       */
+
+      formRef.current?.reset()
 
     } catch (error) {
 
@@ -63,8 +131,10 @@ function Contact() {
         error
       )
 
+
       setError(
-        "Something went wrong while sending your message. Please try again."
+        error?.message ||
+        "Something went wrong. Please try again."
       )
 
     } finally {
@@ -306,8 +376,6 @@ function Contact() {
                       "
                     >
 
-                      {/* Success icon */}
-
                       <motion.div
 
                         initial={{
@@ -358,9 +426,6 @@ function Contact() {
                       </motion.div>
 
 
-
-                      {/* Success title */}
-
                       <motion.h3
 
                         initial={{
@@ -384,9 +449,6 @@ function Contact() {
 
                       </motion.h3>
 
-
-
-                      {/* Success description */}
 
                       <motion.p
 
@@ -413,9 +475,6 @@ function Contact() {
 
                       </motion.p>
 
-
-
-                      {/* Send another */}
 
                       <motion.button
 
@@ -467,6 +526,8 @@ function Contact() {
                     ================================= */
 
                     <motion.form
+
+                      ref={formRef}
 
                       key="form"
 
@@ -554,6 +615,10 @@ function Contact() {
                           type="text"
                           required
                           disabled={sending}
+                          value={name}
+                          onChange={(event) =>
+                            setName(event.target.value)
+                          }
                           placeholder="Your name"
                           className="
                             mt-2
@@ -597,6 +662,10 @@ function Contact() {
                           type="email"
                           required
                           disabled={sending}
+                          value={email}
+                          onChange={(event) =>
+                            setEmail(event.target.value)
+                          }
                           placeholder="you@example.com"
                           className="
                             mt-2
@@ -636,8 +705,13 @@ function Contact() {
 
                         <select
                           id="project"
-                          name="project"
+                          name="project_type"
+                          required
                           disabled={sending}
+                          value={projectType}
+                          onChange={(event) =>
+                            setProjectType(event.target.value)
+                          }
                           className="
                             mt-2
                             w-full
@@ -659,23 +733,23 @@ function Contact() {
                           "
                         >
 
-                          <option>
+                          <option value="AI Video Advertisement">
                             AI Video Advertisement
                           </option>
 
-                          <option>
+                          <option value="Social Media Video">
                             Social Media Video
                           </option>
 
-                          <option>
+                          <option value="AI Cinematic Video">
                             AI Cinematic Video
                           </option>
 
-                          <option>
+                          <option value="Video Editing">
                             Video Editing
                           </option>
 
-                          <option>
+                          <option value="Other">
                             Other
                           </option>
 
@@ -700,6 +774,10 @@ function Contact() {
                           required
                           rows="6"
                           disabled={sending}
+                          value={message}
+                          onChange={(event) =>
+                            setMessage(event.target.value)
+                          }
                           placeholder="Tell me about your project..."
                           className="
                             mt-2
